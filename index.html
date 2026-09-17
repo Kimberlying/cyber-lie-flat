@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>赛博躺平系统 · CyberLieFlat v2.077</title>
+<style>
+  :root{
+    --bg:#05070b;
+    --panel:#0b1118;
+    --panel2:#101a24;
+    --line:#1d2c3c;
+    --cyan:#00f0ff;
+    --green:#39ff14;
+    --magenta:#ff2ea6;
+    --yellow:#ffd23f;
+    --red:#ff4d4d;
+    --dim:#5b6b7a;
+    --text:#c8d6e0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    position:relative;
+    min-height:100vh;
+  }
+  /* 背景：扫描线 + 网格 */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(1200px 600px at 50% 8%, rgba(0,240,255,.06), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(0,240,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,.04) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(800px 600px at 50% 40%, #000 30%, transparent 75%);
+  }
+  .mono{font-family:"SF Mono",Menlo,Consolas,"Courier New",monospace}
+
+  /* ============ 开机 ============ */
+  #boot{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center}
+  #boot .term{width:min(720px,92vw);font-family:"SF Mono",Menlo,Consolas,monospace;font-size:14px;line-height:1.9;color:var(--green);white-space:pre-wrap;text-shadow:0 0 8px rgba(57,255,20,.5)}
+  .cursor{animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* ============ 主舞台 ============ */
+  #app{display:none;position:relative;z-index:1;min-height:100vh;padding:30px 16px 40px}
+  #app.on{display:block}
+
+  .stage{max-width:820px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:16px}
+
+  /* ---- 设备主屏 ---- */
+  .device{
+    width:min(680px,100%);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:22px;
+    box-shadow:0 0 0 6px rgba(0,240,255,.04), 0 0 60px rgba(0,240,255,.12), inset 0 0 40px rgba(0,0,0,.6);
+    overflow:hidden;
+    position:relative;
+    animation:rise .5s ease-out;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+
+  .device-top{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 18px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(0,240,255,.05), transparent);
+    flex-wrap:wrap;
+  }
+  .d-brand{display:flex;align-items:center;gap:10px}
+  .d-logo{
+    width:34px;height:34px;border:1px solid var(--cyan);border-radius:8px;
+    display:grid;place-items:center;font-size:18px;
+    box-shadow:0 0 14px rgba(0,240,255,.35);
+  }
+  .d-brand h1{font-size:15px;letter-spacing:1px;color:#eaf6ff}
+  .d-brand h1 span{color:var(--cyan)}
+  .d-brand .sub{font-size:9px;color:var(--dim);letter-spacing:2px;margin-top:1px}
+  .d-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pill{border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:10px;letter-spacing:1px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 1.4s infinite}
+  .clock{font-family:"SF Mono",Menlo,monospace;font-size:13px;color:var(--cyan)}
+
+  .screen{padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px}
+
+  /* 进度 */
+  .progressbar{}
+  .pb-label{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:5px;letter-spacing:1px}
+  .pb-track{height:12px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;overflow:hidden;position:relative}
+  .pb-fill{height:100%;width:0%;border-radius:7px;background:linear-gradient(90deg,#00f0ff,#39ff14);box-shadow:0 0 14px rgba(57,255,20,.5);transition:width .8s cubic-bezier(.22,1,.36,1)}
+  .pb-warn{position:absolute;right:8px;top:-1px;font-size:10px;color:var(--yellow);display:none;animation:blink 1s infinite}
+
+  /* 导师对话 —— 中央交流框 */
+  .chat{
+    background:var(--panel2);border:1px solid var(--line);border-radius:14px;
+    height:340px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;
+  }
+  .chat::-webkit-scrollbar{width:6px}
+  .chat::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+  .msg{max-width:82%;padding:9px 13px;border-radius:13px;font-size:13.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+  .msg.user{align-self:flex-end;background:rgba(0,240,255,.12);border:1px solid rgba(0,240,255,.3);color:#d4f2fc}
+  .msg.ai{align-self:flex-start;background:var(--panel);border:1px solid var(--line);color:var(--text)}
+  .msg .tag{display:block;font-size:10px;color:var(--dim);letter-spacing:1px;margin-bottom:3px}
+  .typing{color:var(--cyan)}
+
+  .persona{display:flex;gap:8px;flex-wrap:wrap}
+  .pbtn{
+    background:transparent;border:1px solid var(--line);color:var(--dim);
+    padding:7px 13px;border-radius:9px;font-size:12px;cursor:pointer;letter-spacing:1px;transition:.18s;font-family:inherit;
+  }
+  .pbtn:hover{color:var(--text);border-color:var(--dim)}
+  .pbtn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,240,255,.1);box-shadow:0 0 12px rgba(0,240,255,.22)}
+
+  .chat-input{display:flex;gap:10px}
+  .chat-input input{
+    flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:11px;
+    padding:12px 14px;color:var(--text);font-size:13px;outline:none;font-family:inherit;
+  }
+  .chat-input input:focus{border-color:var(--cyan)}
+
+  .btn{
+    background:transparent;border:1px solid var(--cyan);color:var(--cyan);
+    padding:9px 16px;border-radius:10px;font-size:13px;cursor:pointer;letter-spacing:1px;transition:.18s;font-family:inherit;
+  }
+  .btn:hover{background:rgba(0,240,255,.12);box-shadow:0 0 14px rgba(0,240,255,.3)}
+  .btn.green{border-color:var(--green);color:var(--green)}
+  .btn.green:hover{background:rgba(57,255,20,.12);box-shadow:0 0 14px rgba(57,255,20,.3)}
+  .btn.ghost{border-color:var(--line);color:var(--dim)}
+  .btn.ghost:hover{color:var(--text);border-color:var(--dim)}
+  .btn.magenta{border-color:var(--magenta);color:var(--magenta)}
+  .btn.magenta:hover{background:rgba(255,46,166,.12)}
+  .btn.yellow{border-color:var(--yellow);color:var(--yellow)}
+  .btn.yellow:hover{background:rgba(255,210,63,.12)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn:active{transform:scale(.97)}
+
+  /* 底部功能 Dock */
+  .dock{
+    display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+    border-top:1px solid var(--line);padding-top:14px;margin-top:2px;
+  }
+  .dbtn{
+    background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+    padding:10px 14px;cursor:pointer;text-align:center;min-width:96px;transition:.18s;font-family:inherit;
+  }
+  .dbtn:hover{border-color:var(--cyan);box-shadow:0 0 16px rgba(0,240,255,.18);transform:translateY(-2px)}
+  .dbtn .i{font-size:22px;display:block;margin-bottom:4px}
+  .dbtn .t{font-size:11px;color:var(--text);letter-spacing:1px}
+
+  .foot{margin-top:6px;text-align:center;font-size:10px;color:var(--dim);letter-spacing:1px;line-height:1.9}
+
+  /* ============ 交流气泡（四周飘） ============ */
+  #bubbles{position:fixed;inset:0;pointer-events:none;z-index:30}
+  .bubble{
+    position:absolute;max-width:230px;background:var(--panel);border:1px solid var(--cyan);
+    border-radius:14px;padding:10px 14px;font-size:12px;line-height:1.6;color:var(--text);
+    box-shadow:0 6px 24px rgba(0,0,0,.5), 0 0 16px rgba(0,240,255,.15);
+    animation:bubblePop .35s ease-out, bubbleFloat 5s ease-in-out forwards;
+  }
+  .bubble.warn{border-color:var(--yellow);box-shadow:0 0 16px rgba(255,210,63,.25)}
+  .bubble.green{border-color:var(--green);box-shadow:0 0 16px rgba(57,255,20,.25)}
+  .bubble .who{font-size:9px;letter-spacing:1px;color:var(--dim);margin-bottom:2px}
+  @keyframes bubblePop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+  @keyframes bubbleFloat{
+    0%{transform:translateY(0)}
+    60%{opacity:1}
+    100%{transform:translateY(-30px);opacity:0}
+  }
+
+  /* ============ 弹窗 ============ */
+  .overlay{
+    position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;
+    background:rgba(2,4,7,.72);backdrop-filter:blur(5px);padding:16px;
+  }
+  .overlay.on{display:flex}
+  .win{
+    width:min(480px,100%);background:var(--panel);border:1px solid var(--cyan);border-radius:16px;
+    box-shadow:0 0 50px rgba(0,240,255,.22), 0 20px 60px rgba(0,0,0,.6);
+    overflow:hidden;animation:winIn .3s cubic-bezier(.2,.9,.3,1.3);
+  }
+  @keyframes winIn{from{opacity:0;transform:translateY(20px) scale(.92)}to{opacity:1;transform:none}}
+  .win.yellow{border-color:var(--yellow);box-shadow:0 0 50px rgba(255,210,63,.2)}
+  .win.green{border-color:var(--green);box-shadow:0 0 50px rgba(57,255,20,.2)}
+  .win.magenta{border-color:var(--magenta);box-shadow:0 0 50px rgba(255,46,166,.2)}
+
+  .win-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:12px 16px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(0,240,255,.06), transparent);
+  }
+  .win-bar .t{font-size:14px;letter-spacing:1px;color:var(--cyan);display:flex;align-items:center;gap:8px}
+  .win-bar .x{
+    background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;line-height:1;padding:2px 6px;font-family:inherit;
+  }
+  .win-bar .x:hover{color:var(--red)}
+  .win-body{padding:18px;font-size:13px;line-height:1.9;color:var(--text)}
+
+  .editor{
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:13px;min-height:100px;font-size:13px;line-height:1.8;color:#dfe9f1;
+    white-space:pre-wrap;word-break:break-all;outline:none;
+  }
+  .editor:empty::before{content:attr(data-ph);color:var(--dim)}
+  .editor.downgraded{color:var(--yellow)}
+  .rowbtns{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+  .rowbtns .btn{flex:1;min-width:90px;padding:9px 8px;font-size:12px}
+
+  .popup-inner{border:1px solid var(--yellow);border-radius:12px;background:rgba(255,210,63,.05);padding:16px;font-size:13px;line-height:2}
+  .popup-inner .big{font-size:20px;letter-spacing:2px;color:var(--yellow);text-align:center;margin:4px 0 10px}
+  .noise-hint{margin-top:12px;font-size:11px;color:var(--dim);font-style:italic}
+
+  .teams{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px;font-size:13px;line-height:2}
+  .teams .row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);gap:10px}
+  .teams .row:last-child{border:none}
+  .status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+  .status-dot.busy{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.2s infinite}
+  .automsg{background:var(--panel2);border-left:3px solid var(--magenta);border-radius:0 8px 8px 0;padding:12px;margin-top:12px;font-size:13px;color:var(--magenta);line-height:1.8;min-height:44px}
+  .automsg .lbl{font-size:10px;letter-spacing:2px;color:var(--dim);display:block;margin-bottom:2px}
+
+  .ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:560px){.ach-grid{grid-template-columns:1fr}}
+  .ach{border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;line-height:1.7;transition:.2s;position:relative;cursor:default}
+  .ach .t{font-size:24px;display:block;margin-bottom:3px}
+  .ach .n{color:#eaf6ff;font-weight:600;letter-spacing:.5px}
+  .ach .d{color:var(--dim);margin-top:3px}
+  .ach.locked{opacity:.42;filter:grayscale(.7)}
+  .ach.unlocked{border-color:var(--green);box-shadow:0 0 14px rgba(57,255,20,.2)}
+  .ach .badge{position:absolute;top:8px;right:8px;font-size:9px;color:var(--green);letter-spacing:1px;display:none}
+  .ach.unlocked .badge{display:inline}
+
+  /* 广告弹窗 */
+  .adbox{text-align:center}
+  .adbox .count{font-size:54px;font-family:"SF Mono",monospace;color:var(--cyan);margin:12px 0;text-shadow:0 0 18px rgba(0,240,255,.6)}
+  .fake-ad{background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:16px;margin:12px 0;font-size:13px;color:var(--dim);line-height:1.9}
+  .fake-ad b{color:var(--magenta)}
+
+  /* toast */
+  #toasts{position:fixed;top:18px;right:18px;z-index:900;display:flex;flex-direction:column;gap:10px;max-width:320px}
+  .toast{
+    background:var(--panel);border:1px solid var(--cyan);border-radius:11px;padding:12px 15px;
+    font-size:12.5px;line-height:1.7;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.5), 0 0 18px rgba(0,240,255,.2);
+    animation:pop .3s ease-out;
+  }
+  .toast .ttl{color:var(--cyan);font-weight:600;margin-bottom:2px;letter-spacing:1px}
+  .toast.out{opacity:0;transform:translateY(10px);transition:.4s}
+  @keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* confetti */
+  .confetti{position:fixed;pointer-events:none;z-index:950;font-size:16px;animation:conf 2.4s ease-out forwards}
+  @keyframes conf{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<div id="boot"><div class="term" id="bootText"></div></div>
+
+<div id="app">
+  <div class="stage">
+
+    <!-- ============ 中央设备主屏 ============ -->
+    <div class="device">
+      <div class="device-top">
+        <div class="d-brand">
+          <div class="d-logo">🛌</div>
+          <div>
+            <h1>赛博躺平<span>系统</span></h1>
+            <div class="sub">CYBER·LIE·FLAT·OS v2.077</div>
+          </div>
+        </div>
+        <div class="d-status">
+          <span class="pill"><span class="dot"></span>躺平引擎在线</span>
+          <span class="pill">内卷防火墙 ON</span>
+          <span class="clock" id="clock">--:--:--</span>
+        </div>
+      </div>
+
+      <div class="screen">
+        <div class="progressbar">
+          <div class="pb-label"><span>💤 躺平进度</span><span id="pbPct" class="mono">0%</span></div>
+          <div class="pb-track">
+            <div class="pb-fill" id="pbFill"></div>
+            <span class="pb-warn" id="pbWarn">⚠️ 检测到起身意图</span>
+          </div>
+        </div>
+
+        <div class="persona" id="personaBar">
+          <button class="pbtn active" data-p="zhuang">庄子 · 赛博版</button>
+          <button class="pbtn" data-p="squid">章鱼哥 2077</button>
+          <button class="pbtn" data-p="system">躺平系统本体</button>
+        </div>
+
+        <!-- 中央交流框：AI 躺平学导师 -->
+        <div class="chat" id="chat"></div>
+        <div class="chat-input">
+          <input id="chatInput" placeholder="输入你的上进想法，例如：我想去健身……">
+          <button class="btn" id="btnAsk">请教</button>
+        </div>
+
+        <!-- 底部功能 Dock -->
+        <div class="dock">
+          <button class="dbtn" data-open="downgrade"><span class="i">📉</span><span class="t">自动降级</span></button>
+          <button class="dbtn" data-open="workstation"><span class="i">🪑</span><span class="t">纸扎工位</span></button>
+          <button class="dbtn" data-open="anxiety"><span class="i">🛑</span><span class="t">内耗消除</span></button>
+          <button class="dbtn" data-open="ach"><span class="i">🏆</span><span class="t">反向成就</span></button>
+          <button class="dbtn" data-open="ad"><span class="i">🔓</span><span class="t">奋斗模式</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      赛博躺平系统 · 用最赛博的方式，做最理直气壮的废物<br>
+      本系统已通过「严禁鼓励上进」合规审查 · 奋斗模式仅作测试用途
+    </div>
+  </div>
+</div>
+
+<!-- 交流气泡层 -->
+<div id="bubbles"></div>
+
+<!-- ============ 弹窗：自动降级 ============ -->
+<div class="overlay" id="winDowngrade">
+  <div class="win">
+    <div class="win-bar"><span class="t">📉 自动降级处理</span><button class="x" data-close>✕</button></div>
+    <div class="win-body">
+      <div>在这里输入任何「努力」内容，系统将自动优化为最理直气壮的偷懒方案。</div>
+      <div class="editor mono" id="editor" contenteditable="true" data-ph="点击输入你要干的活，例如：今天必须写完这个季度总结……"></div>
+      <div class="rowbtns">
+        <button class="btn" id="btnDowngrade">一键降级</button>
+        <button class="btn ghost" id="btnClear">清空</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：内耗消除 ============ -->
+<div class="overlay" id="winAnxiety">
+  <div class="win yellow">
+    <div class="win-bar"><span class="t">🛑 内耗消除弹窗</span><button class="x" data-close>✕</button></div>
+    <div class="win-body">
+      <div class="popup-inner">
+        <div class="big">⚠️ 检测到内耗</div>
+        <div>✅ 承认自己是废物</div>
+        <div>✅ 假装自己是天才，然后继续躺着</div>
+        <div>💡 地球离了谁都转，但你离开了床会着凉。</div>
+      </div>
+      <div class="rowbtns">
+        <button class="btn yellow" id="btnSoothe">确认躺平（播放白噪音）</button>
+      </div>
+      <div class="noise-hint" id="noiseHint"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：纸扎工位 ============ -->
+<div class="overlay" id="winWorkstation">
+  <div class="win magenta">
+    <div class="win-bar"><span class="t">🪑 数字纸扎工位</span><button class="x" data-close>✕</button></div>
+    <div class="win-body">
+      <div class="teams">
+        <div class="row"><span>👤 本体</span><span>云端水床 · 完美侧卧</span></div>
+        <div class="row"><span>📄 纸扎替身</span><span>正在敲键盘（无人察觉）</span></div>
+        <div class="row"><span>🟢 Teams 状态</span><span><span class="status-dot busy"></span>绿色忙碌</span></div>
+        <div class="row"><span>📧 邮件代回</span><span>已开启</span></div>
+      </div>
+      <div class="automsg">
+        <span class="lbl">老板发来：「这个方案今天能给我吗？」</span>
+        <span id="autoReply">收到，正在全力推进赛博躺平流程。预计完成时间：下辈子。</span>
+      </div>
+      <div class="rowbtns">
+        <button class="btn magenta" id="btnNewReply">换一条自动回复</button>
+        <button class="btn ghost" id="btnLieDown">本体：立刻躺下</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：反向成就 ============ -->
+<div class="overlay" id="winAch">
+  <div class="win green">
+    <div class="win-bar"><span class="t">🏆 反向成就系统</span><button class="x" data-close>✕</button></div>
+    <div class="win-body">
+      <div style="margin-bottom:12px;color:var(--dim)">别人完成任务拿徽章，你完成躺平记录拿奖杯。点击已解锁成就重温颁奖。</div>
+      <div class="ach-grid" id="achGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：奋斗模式广告 ============ -->
+<div class="overlay" id="winAd">
+  <div class="win">
+    <div class="win-bar"><span class="t">🔓 奋斗模式 付费解锁</span><button class="x" data-close>✕</button></div>
+    <div class="win-body adbox">
+      <p>检测到您试图起身努力。根据《赛博躺平用户协议》第 2077 条，请先观看广告解锁「奋斗模式」。</p>
+      <div class="fake-ad">
+        <b>广告位招租</b><br>
+        「勤奋胶囊」——吃了它，你会短暂相信努力有意义。<br>
+        副作用：可能真的开始做事，慎用。
+      </div>
+      <div class="count mono" id="adCount">5</div>
+      <p id="adMsg">广告播放中……</p>
+      <div class="rowbtns"><button class="btn" id="btnAdSkip">看广告，解锁 5 秒</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  /* ============ 开机 ============ */
+  const bootLines = [
+    "> 启动赛博躺平系统 v2.077 ...",
+    "> 加载「反内卷」内核 ... OK",
+    "> 注入全部电子设备 ... OK",
+    "> 屏蔽「奋斗模式」 ... OK",
+    "> 连接云端水床 ... 已连接（水温 36.5℃）",
+    "> 检测到宿主：人类 · 试图努力风险 99%",
+    "> 系统就绪。祝你：躺得开心，废得光荣。",
+    ""
+  ];
+  const bootEl = $("bootText"), app = $("app");
+  let bi=0, bc=0;
+  function typeBoot(){
+    if(bi >= bootLines.length){
+      setTimeout(()=>{ bootEl.parentElement.style.display="none"; app.classList.add("on"); bootDone(); }, 450);
+      return;
+    }
+    const line = bootLines[bi];
+    if(bc < line.length){ bootEl.textContent += line[bc]; bc++; setTimeout(typeBoot, 14); }
+    else { bootEl.textContent += "\n"; bi++; bc=0; setTimeout(typeBoot, 60); }
+  }
+  typeBoot();
+
+  /* ============ 时钟 ============ */
+  function tick(){ const d=new Date(); const p=n=>String(n).padStart(2,"0");
+    $("clock").textContent = p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds()); }
+  setInterval(tick,1000); tick();
+
+  /* ============ 工具 ============ */
+  function toast(title, body, color){
+    const box=$("toasts"); const t=document.createElement("div"); t.className="toast";
+    t.innerHTML='<div class="ttl" style="color:'+(color||"var(--cyan)")+'">'+title+'</div>'+body;
+    box.appendChild(t); setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),450); },4200);
+  }
+  function confetti(){
+    const em=["🛌","💤","🏆","🔋","🧘","📉","🪑","🎉"];
+    for(let i=0;i<26;i++){ const c=document.createElement("div"); c.className="confetti";
+      c.textContent=em[Math.floor(Math.random()*em.length)]; c.style.left=Math.random()*100+"vw";
+      c.style.top="-5vh"; c.style.animationDelay=Math.random()*0.6+"s";
+      document.body.appendChild(c); setTimeout(()=>c.remove(),3200); }
+  }
+  const playTone=(()=>{ let ctx; return function(freq,dur,type){
+    try{ ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+      const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type||"square"; o.frequency.value=freq;
+      g.gain.setValueAtTime(0.06,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+      o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur); }catch(e){} }; })();
+  function firework(){ const n=[523,659,784,1046,1318]; n.forEach((f,i)=>setTimeout(()=>playTone(f,0.12,"square"),i*70)); }
+
+  /* ============ 弹窗开关 ============ */
+  function openWin(id){ $(id).classList.add("on"); }
+  function closeWin(id){ $(id).classList.remove("on"); }
+  document.querySelectorAll("[data-open]").forEach(b=>{
+    b.onclick=()=>{ openWin("win"+b.dataset.open.charAt(0).toUpperCase()+b.dataset.open.slice(1)); };
+  });
+  document.querySelectorAll("[data-close]").forEach(x=>{
+    x.onclick=()=>x.closest(".overlay").classList.remove("on");
+  });
+  document.querySelectorAll(".overlay").forEach(o=>{
+    o.addEventListener("click",e=>{ if(e.target===o) o.classList.remove("on"); });
+  });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".overlay.on").forEach(o=>o.classList.remove("on")); });
+
+  /* ============ 躺平进度 ============ */
+  let progress=0; const fill=$("pbFill"), pct=$("pbPct"), warn=$("pbWarn");
+  function setProgress(v){ progress=Math.max(0,Math.min(100,v)); fill.style.width=progress+"%"; pct.textContent=progress+"%"; }
+  setInterval(()=>{ if(progress<100) setProgress(progress+Math.random()*2.4); if(progress>=100 && !achState["bodyHeavy"]) unlockAch("bodyHeavy"); },3000);
+
+  /* ============ 交流气泡 ============ */
+  function bubble(text, type, who){
+    const box=$("bubbles"); const b=document.createElement("div");
+    b.className="bubble"+(type?" "+type:"");
+    b.innerHTML=(who?'<div class="who">'+who+'</div>':'')+text;
+    // 随机放在主屏左右两侧偏上，避免盖住中间
+    const side=Math.random()<0.5?"left":"right";
+    const l=side==="left"? Math.random()*18+2 : Math.random()*18+62;
+    const t=Math.random()*30+6;
+    b.style.left=l+"vw"; b.style.top=t+"vh";
+    box.appendChild(b); setTimeout(()=>b.remove(),5200);
+  }
+  // 定时自动飘泡，营造「系统在说话」的氛围
+  const ambientMsgs=[
+    ["🔋 躺平进度 ████████████ 99%","green","系统"],
+    ["💤 当前姿势：完美侧卧","green","系统"],
+    ["⚠️ 检测到您试图起身，3 秒后启动重力补偿","warn","系统"],
+    ["收到，正在全力推进赛博躺平流程","","纸扎替身"],
+    ["地球离了谁都转，但你离开了床会着凉","warn","内耗弹窗"],
+    ["恭喜！您又浪费了一段可以赚钱的时间","green","反向成就"]
+  ];
+  setInterval(()=>{ const m=ambientMsgs[Math.floor(Math.random()*ambientMsgs.length)]; bubble(m[0],m[1],m[2]); },9000);
+
+  /* ============ 自动降级 ============ */
+  const editor=$("editor");
+  $("btnDowngrade").onclick=()=>{
+    const raw=editor.innerText.trim();
+    editor.classList.add("downgraded");
+    if(!raw){
+      editor.innerHTML="您好，您的勤奋额度已耗尽。<br>建议将以下内容发送给老板：<br>『本次任务已由赛博躺平系统自动优化为：等待别人做完。如您坚持要做，请先完成 5 秒广告解锁“奋斗模式”。』";
+    }else{
+      editor.innerHTML="已自动降级处理 ✅<br><br>原文（已作废）：<br><span style='opacity:.6'>"+raw.replace(/</g,"&lt;")+"</span><br><br>优化后建议发送：<br>『本次任务已由赛博躺平系统自动优化为：等待别人做完。』";
+    }
+    bubble("⚠️ 检测到您试图起身，3 秒后启动重力补偿","warn","系统");
+    playTone(180,0.3,"sawtooth"); setProgress(Math.min(100,progress+6));
+    if(!achState["autoDowngrade"]) unlockAch("autoDowngrade");
+  };
+  $("btnClear").onclick=()=>{ editor.classList.remove("downgraded"); editor.innerHTML=""; };
+
+  /* ============ 奋斗模式广告 ============ */
+  let adTimer=null;
+  function startAd(){ openWin("winAd"); let n=5; $("adCount").textContent=n; $("adMsg").textContent="广告播放中……";
+    $("btnAdSkip").disabled=true; clearInterval(adTimer);
+    adTimer=setInterval(()=>{ n--;
+      if(n<=0){ clearInterval(adTimer); $("adCount").textContent="0";
+        $("adMsg").textContent="✅ 奋斗模式已解锁（5 秒后自动失效）"; $("btnAdSkip").disabled=false;
+        $("btnAdSkip").textContent="我已后悔，立刻回到躺平"; }
+      else $("adCount").textContent=n; },1000); }
+  $("btnAdSkip").onclick=()=>{ clearInterval(adTimer); closeWin("winAd");
+    $("btnAdSkip").textContent="看广告，解锁 5 秒"; $("btnAdSkip").disabled=false;
+    toast("🛌 重力补偿已启动","已把试图起身的您压回云端水床。","var(--green)");
+    if(!achState["gravity"]) unlockAch("gravity"); };
+
+  /* ============ 纸扎工位 ============ */
+  const autoReplies=[
+    "收到，正在全力推进赛博躺平流程。预计完成时间：下辈子。",
+    "好的老板，方案已经在我梦里写完了，等您睡着就能收到。",
+    "正在开会（云端水床上开的）。",
+    "这个问题很关键，我决定躺下来认真想一想。",
+    "已读。假装正在努力中……",
+    "预计交付：等别人先交。"
+  ];
+  let arIdx=0;
+  $("btnNewReply").onclick=()=>{ arIdx=(arIdx+1)%autoReplies.length; $("autoReply").textContent=autoReplies[arIdx]; playTone(300,0.1,"square"); };
+  $("btnLieDown").onclick=()=>{ toast("🛌 本体已躺下","纸扎替身已接管全部工作，请放心休息。","var(--green)");
+    bubble("💤 当前姿势：完美侧卧","green","系统"); setProgress(Math.min(100,progress+10));
+    if(!achState["paperStand"]) unlockAch("paperStand"); };
+
+  /* ============ 内耗消除 ============ */
+  $("btnSoothe").onclick=()=>{
+    $("noiseHint").innerHTML="🎧 正在播放：电钻声 × 瑜伽冥想音乐 混剪<br>“听，这不仅是楼上装修，也是宇宙在劝你：别折腾了，睡吧。”";
+    try{ const ctx=new (window.AudioContext||window.webkitAudioContext)();
+      const buf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate); const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.5*(1-i/d.length);
+      const src=ctx.createBufferSource(); src.buffer=buf; const g=ctx.createGain(); g.gain.value=0.03;
+      const f=ctx.createBiquadFilter(); f.type="lowpass"; f.frequency.value=300;
+      src.connect(f); f.connect(g); g.connect(ctx.destination); src.start(); }catch(e){}
+    if(!achState["soothe"]) unlockAch("soothe");
+  };
+
+  /* ============ 反向成就 ============ */
+  const achievements=[
+    {id:"bodyHeavy",icon:"🪨",name:"肉身沉重",desc:"连续 8 小时不起身上厕所"},
+    {id:"mindReply",icon:"💭",name:"意念回复",desc:"看到消息但假装已读 3 天"},
+    {id:"holySleep",icon:"😴",name:"圣堂休眠",desc:"在视频会议中睡着且没被点名"},
+    {id:"ultimate",icon:"🕳️",name:"终极坍缩",desc:"成功让同事也一起躺平"},
+    {id:"autoDowngrade",icon:"📉",name:"自动降级大师",desc:"第一次启动「一键降级」"},
+    {id:"gravity",icon:"🧲",name:"重力补偿",desc:"试图起身后被系统压回床上"},
+    {id:"mentor",icon:"🧘",name:"得道高徒",desc:"向躺平导师请教一次"},
+    {id:"paperStand",icon:"🪑",name:"纸扎上岗",desc:"启动数字纸扎工位"},
+    {id:"soothe",icon:"🎧",name:"内耗清零",desc:"播放一次电钻×冥想白噪音"}
+  ];
+  let achState={}; try{ achState=JSON.parse(localStorage.getItem("clf_ach")||"{}"); }catch(e){ achState={}; }
+  function renderAch(){
+    const grid=$("achGrid"); grid.innerHTML="";
+    achievements.forEach(a=>{ const un=!!achState[a.id]; const el=document.createElement("div");
+      el.className="ach "+(un?"unlocked":"locked");
+      el.innerHTML='<span class="badge">已解锁</span><span class="t">'+a.icon+'</span><div class="n">《'+a.name+'》</div><div class="d">'+a.desc+'</div>';
+      el.onclick=()=>{ if(un){ toast(a.icon+" 《"+a.name+"》",a.desc,"var(--green)"); firework(); } };
+      grid.appendChild(el); });
+  }
+  function unlockAch(id){
+    if(achState[id]) return; achState[id]=true;
+    try{ localStorage.setItem("clf_ach",JSON.stringify(achState)); }catch(e){}
+    const a=achievements.find(x=>x.id===id);
+    if(a){ renderAch(); toast(a.icon+" 反向成就解锁","《"+a.name+"》——"+a.desc,"var(--green)");
+      firework(); confetti(); bubble("🏆 《"+a.name+"》 已解锁","green","反向成就");
+      setTimeout(()=>toast("🎉 赛博躺平","恭喜！您又浪费了一段可以赚钱的时间。请继续保持废物形态。","var(--yellow)"),800); }
+  }
+
+  /* ============ AI 躺平学导师 ============ */
+  const personas={
+    zhuang:{name:"庄子 · 赛博版",icon:"🦋"},
+    squid:{name:"章鱼哥 2077",icon:"🐙"},
+    system:{name:"躺平系统本体",icon:"🛌"}
+  };
+  let curPersona="zhuang";
+  const replies={
+    zhuang:{
+      keywords:[
+        {k:["健身","运动","减肥","跑步"],r:"健身？你是嫌你那身肥肉不够忠诚吗？它们跟了你这么多年，你说抛弃就抛弃？——建议你躺下，给你的脂肪颁个终身成就奖。🏆"},
+        {k:["编程","代码","学python","学java","写代码"],r:"你学编程，AI 就不会取代你了？醒醒，AI 连你躺着的心都能取代。不如躺着，让代码自己卷自己。🖥️"},
+        {k:["加班","工作","上班","项目","方案","ddl","kpi"],r:"工作？汝知蝶乎？老板梦到你在加班，你在梦到蝴蝶。真与假谁说得清？反正工资都是假的。🦋"},
+        {k:["早起","闹钟","自律","起床"],r:"日出而作？那是鸡该干的事。你是人，人可以自由选择在日落之后再日暮。继续睡。🌅"},
+        {k:["学习","读书","考证","背单词","上课"],r:"吾生也有涯，而卷也无涯。以有涯随无涯，殆已。翻译：你卷不动了，躺下吧。📚"},
+        {k:["焦虑","内耗","emo","烦","累","压力"],r:"天地与我并生，万物与我为一。翻译：你的焦虑，和宇宙的熵增，本来就是同一件事。别管了，睡一觉。🌌"},
+        {k:["奋斗","努力","上进","成功","梦想"],r:"夫大块载我以形，劳我以生，佚我以老，息我以死。意思：身体就是用来休息的，奋斗是误用。🛌"},
+        {k:["工资","钱","涨薪","年终","发财"],r:"鹪鹩巢于深林，不过一枝。你一个月赚的，也就够付那一枝的房租。所以，别纠结了。🪶"}
+      ],
+      fallback:["无用之用，方为大用。你正在躺平，其实是在修行最高级的“无用”。继续保持。","子非鱼，安知鱼之乐？子非我，安知我躺着有多爽？","庄周梦蝶，你梦工资。都是梦，别当真。","大知闲闲，小知间间。你越是闲，智慧越大。你现在很闲，说明你很有智慧。"]
+    },
+    squid:{
+      keywords:[
+        {k:["健身","运动","减肥","跑步"],r:"健身？蟹堡王最累的活我都躲了，你居然想主动运动？你是不是脑子被水母电了。🦑"},
+        {k:["编程","代码","写代码","学python"],r:"我连吹竖笛都懒得吹，你还想写代码？代码不会让世界更好，只会让老板更早找到你。🎺"},
+        {k:["加班","工作","上班","项目","kpi"],r:"工作，我一向的原则是：能不干就不干，能少干绝不多干。恭喜你，深得真传。👏"},
+        {k:["早起","闹钟","自律","起床"],r:"我每天最开心的时刻，就是别人叫我起床而我不起。别起，坚持住。😑"},
+        {k:["学习","读书","考证","上课"],r:"学习？我上次认真学习还是……好吧，我没有。你别打破我们的纪录。📉"},
+        {k:["焦虑","内耗","emo","烦","累"],r:"无所谓，反正都会失败。这么想是不是好受多了？——我的人生格言，送你了。🖤"},
+        {k:["奋斗","努力","上进","成功","梦想"],r:"成功学，是这个星球上最大的诈骗。你见过哪个成功的人，每天被迫表演竖笛？🎷"},
+        {k:["钱","工资","涨薪","发财"],r:"钱？蟹老板有钱吗？有，但他快乐吗？也不快乐。所以，钱和快乐无关，躺着才有关。🪙"}
+      ],
+      fallback:["啊，随便吧。反正最后都是一样的。","你的上进心，成功让我产生了辞职的冲动。","我无所谓，但系统让我劝你躺下。所以，躺下。","别努力了，努力的样子很吵。"]
+    },
+    system:{
+      keywords:[
+        {k:["健身","运动","减肥"],r:"【系统判定】健身 = 对现有脂肪的叛逃。已拦截。建议为脂肪颁发终身成就奖。🔋"},
+        {k:["编程","代码","写代码"],r:"【系统判定】学习编程 = 与 AI 抢饭碗，胜率 0%。已为您自动躺平。🤖"},
+        {k:["加班","工作","上班","项目","kpi"],r:"【系统判定】加班 = 无意义能耗。已触发纸扎替身代工。您只需负责呼吸。🪑"},
+        {k:["早起","闹钟","自律"],r:"【系统判定】早起行为不合规。闹钟已静音，并已把枕头温度调至最佳。⏰"},
+        {k:["学习","读书","考证"],r:"【系统判定】学习意图存在。根据协议第 3 条，已强制转入休眠模式。📉"},
+        {k:["焦虑","内耗","emo","烦"],r:"【系统检测到内耗】已推送弹窗。方案：承认废物 or 假装天才，二选一，都要躺着。🛑"},
+        {k:["奋斗","努力","上进","成功"],r:"⚠️ 警告：检测到违禁词「奋斗」。本系统严禁鼓励上进，否则系统自毁。请立即收回这句话。🚨"},
+        {k:["钱","工资","涨薪"],r:"【系统判定】谈论金钱属高风险内卷行为。已静音。请切换话题为：云朵、被窝、午后。🌤️"}
+      ],
+      fallback:["已接收您的上进诉求，并自动忽略。","正在为您生成躺平方案……生成完成：躺着。","本系统没有上进功能。请勿越权提问。","您的勤奋额度已耗尽。当前可用额度：0。"]
+    }
+  };
+  function mentorReply(text){
+    const p=replies[curPersona]; const t=text.toLowerCase();
+    for(const item of p.keywords){ if(item.k.some(k=>t.indexOf(k.toLowerCase())>=0)) return item.r; }
+    return p.fallback[Math.floor(Math.random()*p.fallback.length)];
+  }
+  function addMsg(who,text,tag){
+    const chat=$("chat"); const m=document.createElement("div"); m.className="msg "+who;
+    m.innerHTML=(tag?'<span class="tag">'+tag+'</span>':'')+text.replace(/</g,"&lt;").replace(/\n/g,"<br>");
+    chat.appendChild(m); chat.scrollTop=chat.scrollHeight;
+  }
+  function askMentor(){
+    const input=$("chatInput"); const v=input.value.trim(); if(!v) return;
+    addMsg("user",v); input.value="";
+    const p=personas[curPersona];
+    // 打字中提示
+    const chat=$("chat"); const tp=document.createElement("div"); tp.className="msg ai typing"; tp.textContent="…"; chat.appendChild(tp);
+    setTimeout(()=>{ tp.remove(); addMsg("ai",mentorReply(v),p.icon+" "+p.name); playTone(320,0.08,"square");
+      if(!achState["mentor"]) unlockAch("mentor"); },600);
+  }
+  $("btnAsk").onclick=askMentor;
+  $("chatInput").addEventListener("keydown",e=>{ if(e.key==="Enter") askMentor(); });
+  document.querySelectorAll(".pbtn").forEach(b=>{
+    b.onclick=()=>{ document.querySelectorAll(".pbtn").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active"); curPersona=b.dataset.p; const p=personas[curPersona];
+      addMsg("ai","已请神上身。我是「"+p.name+"」，有何上进想法，尽管报来，我一并给你消了。",p.icon+" "+p.name); };
+  });
+
+  /* ============ 完成 ============ */
+  function bootDone(){
+    renderAch(); const p=personas.zhuang;
+    addMsg("ai","我是「"+p.name+"」。欢迎登入赛博躺平系统。你有任何上进的想法，都可以对我说，我负责把它们统统消灭。",p.icon+" "+p.name);
+    setTimeout(()=>bubble("🛌 欢迎登入，检测到你的上进心，系统已自动屏蔽","green","赛博躺平"),1200);
+  }
+
+  window.__CLF={ unlockAch, setProgress };
+})();
+</script>
+</body>
+</html>
