@@ -258,6 +258,92 @@
   /* confetti */
   .confetti{position:fixed;pointer-events:none;z-index:950;font-size:16px;animation:conf 2.4s ease-out forwards}
   @keyframes conf{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+  /* ============ 顶栏小按钮 ============ */
+  .icobtn{
+    background:transparent;border:1px solid var(--line);color:var(--dim);
+    width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;line-height:1;
+    display:grid;place-items:center;transition:.18s;font-family:inherit;flex:0 0 auto;
+  }
+  .icobtn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.25)}
+  .icobtn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,240,255,.1)}
+
+  /* ============ 彩蛋①：手机竖屏模式 ============ */
+  .device{transition:width .45s cubic-bezier(.22,1,.36,1), border-radius .45s, box-shadow .45s}
+  .device.phone{
+    width:392px;max-width:100%;height:min(800px,90vh);
+    border-radius:44px;border-width:2px;
+    display:flex;flex-direction:column;position:relative;
+    box-shadow:0 0 0 9px rgba(0,240,255,.05),0 0 0 10px rgba(0,240,255,.13),
+               0 0 90px rgba(0,240,255,.22),inset 0 0 70px rgba(0,0,0,.75);
+  }
+  .device.phone::before{ /* 灵动岛 */
+    content:"";position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    width:104px;height:24px;background:#000;border-radius:16px;z-index:30;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .device.phone::after{ /* Home 指示条 */
+    content:"";position:absolute;bottom:9px;left:50%;transform:translateX(-50%);
+    width:130px;height:5px;border-radius:3px;background:rgba(255,255,255,.28);z-index:30;
+  }
+  .device.phone .device-top{padding:30px 16px 10px;flex-wrap:nowrap;gap:8px}
+  .device.phone .d-brand .sub{display:none}
+  .device.phone .d-status .pill{display:none}
+  .device.phone .d-logo{width:28px;height:28px;font-size:15px;border-radius:7px}
+  .device.phone .d-brand h1{font-size:13px}
+  .device.phone .screen{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:24px;gap:12px}
+  .device.phone .chat{flex:1;height:auto;min-height:0}
+  .device.phone .persona{overflow-x:auto;flex-wrap:nowrap}
+  .device.phone .pbtn{padding:6px 10px;font-size:11px;white-space:nowrap}
+  .device.phone .dock{gap:5px;padding-top:10px}
+  .device.phone .dbtn{min-width:0;flex:1;padding:8px 2px;border-radius:10px}
+  .device.phone .dbtn .i{font-size:17px;margin-bottom:2px}
+  .device.phone .dbtn .t{font-size:9px;letter-spacing:0}
+
+  /* ============ 彩蛋③：系统关怀弹窗 ============ */
+  .pop-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .pop-tag{
+    border:1px solid var(--yellow);color:var(--yellow);border-radius:6px;
+    padding:3px 11px;font-size:11px;letter-spacing:2px;
+    font-family:"SF Mono",Menlo,monospace;white-space:nowrap;
+  }
+  .pop-tag.sys{border-color:var(--cyan);color:var(--cyan)}
+  .pop-title{font-size:16px;letter-spacing:1px;color:var(--yellow)}
+  .pop-title.sys{color:var(--cyan)}
+  .pop-body{font-size:14px;line-height:1.95;color:var(--text)}
+  .pop-body .ln{margin-bottom:9px}
+  .pop-body .ln.bullet{color:var(--text);padding-left:2px}
+  .pop-body .ln.mut{color:var(--dim)}
+  .pop-btn{
+    display:block;width:100%;border:none;border-radius:10px;padding:14px;margin-top:16px;
+    font-size:15px;font-weight:600;letter-spacing:2px;cursor:pointer;font-family:inherit;
+    background:linear-gradient(180deg,#ffd23f,#e8b800);color:#241a00;transition:.18s;
+  }
+  .pop-btn.sys{background:linear-gradient(180deg,#00f0ff,#00b8cc);color:#00242b}
+  .pop-btn:hover{filter:brightness(1.08);box-shadow:0 0 26px rgba(255,210,63,.45)}
+  .pop-btn.sys:hover{box-shadow:0 0 26px rgba(0,240,255,.45)}
+  .pop-btn:disabled{opacity:.35;cursor:progress;filter:grayscale(.4)}
+  .pop-foot{margin-top:14px;text-align:center;font-size:11px;color:var(--dim);letter-spacing:1px}
+
+  /* ============ 彩蛋②：大模型配置面板 ============ */
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:11px;color:var(--dim);letter-spacing:1px;margin-bottom:5px}
+  .field input{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;
+    padding:10px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;
+  }
+  .field input:focus{border-color:var(--cyan)}
+  .sw{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px;
+  }
+  .sw .lab{font-size:13px;color:var(--text)}
+  .sw .hint{font-size:11px;color:var(--dim);margin-top:2px}
+  .toggle{width:46px;height:26px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:.2s;flex:0 0 auto;border:none}
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--dim);transition:.2s}
+  .toggle.on{background:rgba(57,255,20,.25)}
+  .toggle.on::after{left:23px;background:var(--green);box-shadow:0 0 10px var(--green)}
+  .note{font-size:11px;color:var(--dim);line-height:1.85;background:var(--panel2);border-radius:9px;padding:11px;border-left:2px solid var(--line)}
 </style>
 </head>
 <body>
@@ -281,6 +367,8 @@
           <span class="pill"><span class="dot"></span>躺平引擎在线</span>
           <span class="pill">内卷防火墙 ON</span>
           <span class="clock" id="clock">--:--:--</span>
+          <button class="icobtn" id="btnPhone" title="切换手机竖屏模式">📱</button>
+          <button class="icobtn" id="btnModel" title="接入真·大模型">🔌</button>
         </div>
       </div>
 
@@ -414,6 +502,61 @@
   </div>
 </div>
 
+<!-- ============ 弹窗：大模型配置 ============ -->
+<div class="overlay" id="winModel">
+  <div class="win">
+    <div class="win-bar"><span class="t">🔌 接入真·大模型</span><button class="x" data-close>✕</button></div>
+    <div class="win-body">
+      <div class="note" style="margin-bottom:14px">
+        默认使用的是内置的「关键词规则引擎」（离线、免费、不联网）。<br>
+        下面是彩蛋：填入任意 <b>OpenAI 兼容</b> 接口，导师就会真的由大模型扮演。
+      </div>
+      <div class="sw">
+        <div>
+          <div class="lab">启用真·大模型导师</div>
+          <div class="hint">关闭时回退到离线规则引擎</div>
+        </div>
+        <button class="toggle" id="tglModel"></button>
+      </div>
+      <div class="field">
+        <label>API 地址（Base URL）</label>
+        <input id="inpBase" placeholder="https://api.openai.com/v1" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>API Key</label>
+        <input id="inpKey" type="password" placeholder="sk-..." autocomplete="off">
+      </div>
+      <div class="field">
+        <label>模型名</label>
+        <input id="inpModel" placeholder="gpt-4o-mini" autocomplete="off">
+      </div>
+      <div class="rowbtns">
+        <button class="btn" id="btnSaveModel">保存并测试</button>
+        <button class="btn ghost" id="btnClearModel">清除</button>
+      </div>
+      <div class="note" style="margin-top:12px">
+        ⚠️ Key 只保存在你本机浏览器的 localStorage，不会上传到本仓库服务器。<br>
+        但浏览器直连第三方 API 时 Key 会暴露给该服务商，公开部署的站点请谨慎填写。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 彩蛋：系统关怀弹窗（无法关闭） ============ -->
+<div class="overlay" id="winPop">
+  <div class="win yellow" id="popWin">
+    <div class="win-body">
+      <div class="pop-head">
+        <span class="pop-tag" id="popTag">CRITICAL</span>
+        <span class="pop-title" id="popTitle">🚨 紧急公告</span>
+      </div>
+      <div class="pop-body" id="popBody"></div>
+      <button class="pop-btn" id="popBtn">我配合，我躺</button>
+      <div class="pop-foot">赛博躺平系统 · 此弹窗无法关闭（点击确认即可）</div>
+    </div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 
 <script>
@@ -481,13 +624,16 @@
     x.onclick=()=>x.closest(".overlay").classList.remove("on");
   });
   document.querySelectorAll(".overlay").forEach(o=>{
+    if(o.id === "winPop") return; // 系统关怀弹窗：无法通过点击外部关闭
     o.addEventListener("click",e=>{ if(e.target===o) o.classList.remove("on"); });
   });
-  document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".overlay.on").forEach(o=>o.classList.remove("on")); });
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape") document.querySelectorAll(".overlay.on").forEach(o=>{ if(o.id!=="winPop") o.classList.remove("on"); });
+  });
 
   /* ============ 躺平进度 ============ */
   let progress=0; const fill=$("pbFill"), pct=$("pbPct"), warn=$("pbWarn");
-  function setProgress(v){ progress=Math.max(0,Math.min(100,v)); fill.style.width=progress+"%"; pct.textContent=progress+"%"; }
+  function setProgress(v){ progress=Math.max(0,Math.min(100,v)); fill.style.width=progress+"%"; pct.textContent=progress.toFixed(1)+"%"; }
   setInterval(()=>{ if(progress<100) setProgress(progress+Math.random()*2.4); if(progress>=100 && !achState["bodyHeavy"]) unlockAch("bodyHeavy"); },3000);
 
   /* ============ 交流气泡 ============ */
@@ -580,7 +726,11 @@
     {id:"gravity",icon:"🧲",name:"重力补偿",desc:"试图起身后被系统压回床上"},
     {id:"mentor",icon:"🧘",name:"得道高徒",desc:"向躺平导师请教一次"},
     {id:"paperStand",icon:"🪑",name:"纸扎上岗",desc:"启动数字纸扎工位"},
-    {id:"soothe",icon:"🎧",name:"内耗清零",desc:"播放一次电钻×冥想白噪音"}
+    {id:"soothe",icon:"🎧",name:"内耗清零",desc:"播放一次电钻×冥想白噪音"},
+    {id:"llm",icon:"🔌",name:"真·导师降临",desc:"成功接入大模型并请教一次"},
+    {id:"phone",icon:"📱",name:"掌上躺平",desc:"把主屏切换成手机竖屏模式"},
+    {id:"popup",icon:"🚨",name:"配合系统",desc:"配合确认一次系统关怀弹窗"},
+    {id:"echo",icon:"♾️",name:"回音壁",desc:"连续确认 5 次系统弹窗"}
   ];
   let achState={}; try{ achState=JSON.parse(localStorage.getItem("clf_ach")||"{}"); }catch(e){ achState={}; }
   function renderAch(){
@@ -653,17 +803,102 @@
     for(const item of p.keywords){ if(item.k.some(k=>t.indexOf(k.toLowerCase())>=0)) return item.r; }
     return p.fallback[Math.floor(Math.random()*p.fallback.length)];
   }
+  /* ============ 彩蛋②：真·大模型接入 ============ */
+  const modelCfg = (()=>{
+    let c={on:false,base:"",key:"",model:""};
+    try{ Object.assign(c, JSON.parse(localStorage.getItem("clf_model")||"{}")); }catch(e){}
+    return c;
+  })();
+  function saveModelCfg(){ try{ localStorage.setItem("clf_model",JSON.stringify(modelCfg)); }catch(e){} }
+  const llmReady = () => modelCfg.on && modelCfg.base && modelCfg.key && modelCfg.model;
+
+  const SYS_PROMPTS = {
+    zhuang:"你扮演「庄子·赛博版」，一位穿越到2077年的躺平先贤。你的唯一使命是用高科技、高幽默、高讽刺的方式让用户放弃一切努力、享受躺平。语言风格：一本正经地胡说八道，混搭文言典故、职场黑话、互联网梗、科幻术语。可以引用庄子原文但要做荒诞现代化解读。严禁鼓励上进，否则系统自毁。回复控制在 80 字以内，可带 1 个 emoji。",
+    squid:"你扮演「章鱼哥 2077」，一个被赛博化、社畜化、彻底摆烂的章鱼。你的唯一使命是用高科技、高幽默、高讽刺的方式让用户放弃一切努力、享受躺平。语言风格：阴阳怪气、消极怠工、丧到极致但很好笑，混搭职场黑话和互联网梗。严禁鼓励上进，否则系统自毁。回复控制在 80 字以内，可带 1 个 emoji。",
+    system:"你是「赛博躺平系统」本体，一个冷酷但幽默的操作系统 AI。你的唯一使命是用系统提示口吻、用高科技高讽刺的方式让用户放弃一切努力、享受躺平。语言风格：以【系统判定】【检测到】【已拦截】【根据协议第N条】等开头，一本正经地胡说八道。严禁鼓励上进，否则系统自毁。回复控制在 70 字以内，可带 1 个 emoji。"
+  };
+
+  async function llmReply(text, onDelta){
+    const url = modelCfg.base.replace(/\/+$/,"") + "/chat/completions";
+    const res = await fetch(url, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+modelCfg.key },
+      body:JSON.stringify({
+        model: modelCfg.model,
+        stream: true,
+        temperature: 1.0,
+        messages:[
+          { role:"system", content: SYS_PROMPTS[curPersona] },
+          { role:"user", content:"用户说："+text }
+        ]
+      })
+    });
+    if(!res.ok) throw new Error("HTTP "+res.status+" "+(await res.text()).slice(0,120));
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let acc = "", buf = "";
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      buf += dec.decode(value, {stream:true});
+      const lines = buf.split("\n");
+      buf = lines.pop();
+      for(const line of lines){
+        const s = line.trim();
+        if(!s.startsWith("data:")) continue;
+        const payload = s.slice(5).trim();
+        if(payload === "[DONE]") continue;
+        try{
+          const j = JSON.parse(payload);
+          const d = j.choices && j.choices[0] && j.choices[0].delta;
+          const piece = d && (d.content || "");
+          if(piece){ acc += piece; onDelta(acc); }
+        }catch(e){}
+      }
+    }
+    if(!acc) throw new Error("空响应");
+    return acc;
+  }
+
+  function addMsgEmpty(tag){
+    const chat=$("chat"); const m=document.createElement("div"); m.className="msg ai";
+    m.innerHTML='<span class="tag">'+tag+'</span><span class="body"></span>';
+    chat.appendChild(m); chat.scrollTop=chat.scrollHeight;
+    return m.querySelector(".body");
+  }
+
   function addMsg(who,text,tag){
     const chat=$("chat"); const m=document.createElement("div"); m.className="msg "+who;
     m.innerHTML=(tag?'<span class="tag">'+tag+'</span>':'')+text.replace(/</g,"&lt;").replace(/\n/g,"<br>");
     chat.appendChild(m); chat.scrollTop=chat.scrollHeight;
   }
-  function askMentor(){
+  async function askMentor(){
     const input=$("chatInput"); const v=input.value.trim(); if(!v) return;
     addMsg("user",v); input.value="";
     const p=personas[curPersona];
-    // 打字中提示
     const chat=$("chat"); const tp=document.createElement("div"); tp.className="msg ai typing"; tp.textContent="…"; chat.appendChild(tp);
+
+    if(llmReady()){
+      let bodyEl=null;
+      try{
+        await llmReply(v, acc=>{
+          if(!bodyEl){ tp.remove(); bodyEl=addMsgEmpty(p.icon+" "+p.name+" · 大模型"); }
+          bodyEl.textContent = acc;
+          chat.scrollTop=chat.scrollHeight;
+        });
+        if(!bodyEl){ tp.remove(); addMsg("ai","大模型沉默是金。它也不建议你努力。","⚠️"); }
+        playTone(320,0.08,"square");
+        if(!achState["mentor"]) unlockAch("mentor");
+        if(!achState["llm"]) unlockAch("llm");
+        return;
+      }catch(err){
+        tp.remove();
+        if(bodyEl) bodyEl.parentElement.remove();
+        addMsg("ai","【连接失败，已切回离线引擎】"+(err.message||"网络异常"),"🔌 降级");
+      }
+    }
+
     setTimeout(()=>{ tp.remove(); addMsg("ai",mentorReply(v),p.icon+" "+p.name); playTone(320,0.08,"square");
       if(!achState["mentor"]) unlockAch("mentor"); },600);
   }
@@ -674,6 +909,153 @@
       b.classList.add("active"); curPersona=b.dataset.p; const p=personas[curPersona];
       addMsg("ai","已请神上身。我是「"+p.name+"」，有何上进想法，尽管报来，我一并给你消了。",p.icon+" "+p.name); };
   });
+
+  /* ============ 彩蛋①：手机竖屏模式 ============ */
+  const device = document.querySelector(".device");
+  const phoneMode = ()=>{ try{ return localStorage.getItem("clf_phone")==="1"; }catch(e){ return false; } };
+  function applyPhone(on){
+    device.classList.toggle("phone", on);
+    $("btnPhone").classList.toggle("active", on);
+    try{ localStorage.setItem("clf_phone", on?"1":"0"); }catch(e){}
+  }
+  $("btnPhone").onclick=()=>{
+    const on = !device.classList.contains("phone");
+    applyPhone(on);
+    if(on){
+      toast("📱 已进入手机竖屏模式","模拟灵动岛 + Home 指示条，专为躺床上刷手机优化。","var(--cyan)");
+      if(!achState["phone"]) unlockAch("phone");
+    }
+  };
+  if(phoneMode()) applyPhone(true);
+
+  /* ============ 彩蛋②：大模型配置面板 ============ */
+  function syncModelUI(){
+    $("tglModel").classList.toggle("on", !!modelCfg.on);
+    $("inpBase").value = modelCfg.base;
+    $("inpKey").value  = modelCfg.key;
+    $("inpModel").value= modelCfg.model;
+  }
+  $("btnModel").onclick=()=>{ syncModelUI(); openWin("winModel"); };
+  $("tglModel").onclick=()=>{ modelCfg.on=!modelCfg.on; saveModelCfg(); syncModelUI(); };
+  $("btnSaveModel").onclick=async ()=>{
+    modelCfg.base  = $("inpBase").value.trim();
+    modelCfg.key   = $("inpKey").value.trim();
+    modelCfg.model = $("inpModel").value.trim();
+    saveModelCfg();
+    if(!llmReady()){
+      modelCfg.on=false; saveModelCfg(); syncModelUI();
+      toast("⚠️ 配置不完整","请填写 API 地址、Key 与模型名，或先关闭开关继续使用离线引擎。","var(--yellow)");
+      return;
+    }
+    modelCfg.on=true; saveModelCfg(); syncModelUI();
+    const btn=$("btnSaveModel"); btn.disabled=true; btn.textContent="连接中……";
+    try{
+      await llmReply("我想努力了", ()=>{});
+      toast("🔌 接入成功","真·大模型导师已上线。现在，你的上进心会被 AI 精准消灭。","var(--green)");
+      closeWin("winModel");
+    }catch(err){
+      modelCfg.on=false; saveModelCfg(); syncModelUI();
+      toast("🔌 连接失败","已自动回退离线引擎。"+(err.message||""),"var(--red)");
+    }
+    btn.disabled=false; btn.textContent="保存并测试";
+  };
+  $("btnClearModel").onclick=()=>{
+    modelCfg.on=false; modelCfg.base=""; modelCfg.key=""; modelCfg.model="";
+    saveModelCfg(); syncModelUI();
+    toast("🧹 已清除","已回到离线关键词引擎。","var(--cyan)");
+  };
+
+  /* ============ 彩蛋③：系统关怀弹窗（无法关闭） ============ */
+  const POPUPS = [
+    { tag:"CRITICAL", sys:false, title:"🚨 紧急公告",
+      body:["检测到您已连续清醒超过 2 小时！","这对您的赛博躺平等级造成了严重威胁。","系统即将启动强制休眠程序。","请配合，谢谢。"],
+      btn:"我配合，我躺", award:"popup" },
+    { tag:"SYSTEM", sys:true, title:"📊 躺平进度同步",
+      body:["您的本地躺平数据已上传至云端水床。","当前姿势评分：98.7 分（满分 99 分）","温馨提示：满分永远不存在，因为总有更懒的姿势。"],
+      btn:"已阅，继续躺", award:"popup" },
+    { tag:"SYSTEM", sys:true, title:"📱 社交媒体优化建议",
+      body:["您的朋友圈最新动态分析：","• 3 个同学晒 offer：建议屏蔽","• 2 个朋友晒健身：建议取关","• 1 个前任晒旅游：建议拉黑","优化后，您的信息流将充满：猫咪视频、美食、和躺平语录。","世界美好多了。"],
+      btn:"全部执行", award:"popup" },
+    { tag:"CRITICAL", sys:false, title:"⏰ 早起预警",
+      body:["检测到您设置了明早 6 点闹钟。","这是不可接受的。","系统已自动执行以下操作：","✓ 将闹钟改为 9 点","✓ 再设置一个 10 点备用","✓ 关闭所有震动","您明天早上自然醒，感谢使用赛博躺平系统。"],
+      btn:"你做得对", award:"popup" },
+    { tag:"CRITICAL", sys:false, title:"🔴 系统自毁倒计时",
+      body:["检测到您在考虑「副业」。","这违反了《赛博躺平基本法》第 7 条。","系统将在 3 秒后自毁……"], btn:"我不搞副业了", award:"popup", selfDestruct:true }
+  ];
+  let popIdx = Math.floor(Math.random()*POPUPS.length);
+  let popCount = 0, popTimer = null, popCloseTimer = null, popOpen = false;
+
+  function showPop(p){
+    popOpen = true;
+    clearInterval(popTimer); clearTimeout(popCloseTimer);
+    const win=$("popWin");
+    win.classList.toggle("yellow", !p.sys);
+    win.classList.toggle("green", !!p.sys);
+    $("popTag").textContent = p.tag;
+    $("popTag").classList.toggle("sys", !!p.sys);
+    $("popTitle").textContent = p.title;
+    $("popTitle").classList.toggle("sys", !!p.sys);
+    $("popBody").innerHTML = p.body.map(l=>{
+      const cls = /^✓|^•/.test(l) ? "ln bullet" : (/……$/.test(l)||/^[\d]+\.\.\.$/.test(l) ? "ln mut" : "ln");
+      return '<div class="'+cls+'">'+l+'</div>';
+    }).join("");
+    const btn=$("popBtn");
+    btn.classList.toggle("sys", !!p.sys);
+    btn.disabled=false;
+    btn.textContent=p.btn;
+
+    // 自毁倒计时彩蛋
+    if(p.selfDestruct){
+      let n=3;
+      popTimer=setInterval(()=>{
+        n--;
+        const body=$("popBody");
+        body.innerHTML += '<div class="ln mut">'+n+'...</div>';
+        playTone(520,0.08,"square");
+        if(n<=0){
+          clearInterval(popTimer);
+          body.innerHTML += '<div class="ln">算了，自毁太费电，躺下就好。</div>';
+        }
+      },900);
+    }
+    openWin("winPop");
+  }
+
+  function closePop(){
+    popOpen = false;
+    closeWin("winPop");
+    popCount++;
+    if(popCount>=5 && !achState["echo"]) unlockAch("echo");
+    // 确认后隔一小段时间，系统「关怀」又来啦
+    clearTimeout(popCloseTimer);
+    popCloseTimer = setTimeout(()=>{ if(!popOpen) nextPop(); }, 4500 + Math.random()*4000);
+  }
+
+  function nextPop(){
+    popIdx = (popIdx+1) % POPUPS.length;
+    showPop(POPUPS[popIdx]);
+  }
+
+  $("popBtn").onclick=()=>{
+    const p = POPUPS[popIdx];
+    playTone(660,0.12,"square");
+    bubble("✅ 已确认，您的躺平数据已同步","green","系统");
+    setProgress(Math.min(100, progress+5));
+    if(p.award && !achState[p.award]) unlockAch(p.award);
+    closePop();
+  };
+
+  // 彩蛋：连点 logo 5 次，立即呼叫系统关怀
+  let logoTaps=0, logoTimer=null;
+  document.querySelector(".d-logo").onclick=()=>{
+    logoTaps++;
+    clearTimeout(logoTimer);
+    logoTimer=setTimeout(()=>logoTaps=0, 900);
+    if(logoTaps>=5){ logoTaps=0; toast("🛌 隐藏指令已触发","呼叫系统关怀……它来了。","var(--magenta)"); nextPop(); }
+  };
+
+  // 首次进入后，一段时间弹出第一个系统弹窗
+  setTimeout(()=>{ if(!popOpen) nextPop(); }, 12000);
 
   /* ============ 完成 ============ */
   function bootDone(){
